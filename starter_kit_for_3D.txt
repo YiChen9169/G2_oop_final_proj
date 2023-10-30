@@ -1,0 +1,106 @@
+import pygame
+import random
+import numpy as np
+
+# Constants
+GRID_SIZE = 4
+TILE_SIZE = 100
+WINDOW_WIDTH = GRID_SIZE * TILE_SIZE
+WINDOW_HEIGHT = GRID_SIZE * TILE_SIZE
+
+# Colors
+WHITE = (255, 255, 255)
+GRAY = (200, 200, 200)
+BLACK = (0, 0, 0)
+
+# Initialize Pygame
+pygame.init()
+window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+pygame.display.set_caption("3D 2048")
+
+# Initialize the game grid
+grid = np.zeros((GRID_SIZE, GRID_SIZE, GRID_SIZE), dtype=int)
+
+# Add a random tile (2 or 4) to the grid
+def add_random_tile():
+    empty_cells = [(x, y, z) for x in range(GRID_SIZE) for y in range(GRID_SIZE) for z in range(GRID_SIZE) if grid[x, y, z] == 0]
+    if empty_cells:
+        x, y, z = random.choice(empty_cells)
+        grid[x, y, z] = 2 if random.random() < 0.9 else 4
+
+# Draw the game grid
+def draw_grid():
+    window.fill(WHITE)
+    for x in range(GRID_SIZE):
+        for y in range(GRID_SIZE):
+            for z in range(GRID_SIZE):
+                value = grid[x, y, z]
+                color = GRAY if value != 0 else WHITE
+                pygame.draw.rect(window, color, (x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE))
+                if value != 0:
+                    font = pygame.font.Font(None, 36)
+                    text = font.render(str(value), True, BLACK)
+                    text_rect = text.get_rect(center=(x * TILE_SIZE + TILE_SIZE / 2, y * TILE_SIZE + TILE_SIZE / 2))
+                    window.blit(text, text_rect)
+    pygame.display.update()
+
+# Slide the tiles in the specified direction (x, y, or z)
+def slide(direction):
+    if direction == "x":
+        for y in range(GRID_SIZE):
+            for z in range(GRID_SIZE):
+                row = [grid[x, y, z] for x in range(GRID_SIZE)]
+                slide_row(row)
+                for x in range(GRID_SIZE):
+                    grid[x, y, z] = row[x]
+    elif direction == "y":
+        for x in range(GRID_SIZE):
+            for z in range(GRID_SIZE):
+                row = [grid[x, y, z] for y in range(GRID_SIZE)]
+                slide_row(row)
+                for y in range(GRID_SIZE):
+                    grid[x, y, z] = row[y]
+    elif direction == "z":
+        for x in range(GRID_SIZE):
+            for y in range(GRID_SIZE):
+                row = [grid[x, y, z] for z in range(GRID_SIZE)]
+                slide_row(row)
+                for z in range(GRID_SIZE):
+                    grid[x, y, z] = row[z]
+    add_random_tile()
+    draw_grid()
+
+# Helper function to slide a row of tiles
+def slide_row(row):
+    row[:] = [cell for cell in row if cell != 0]
+    for i in range(len(row) - 1):
+        if row[i] == row[i + 1]:
+            row[i] *= 2
+            row[i + 1] = 0
+    row[:] = [cell for cell in row if cell != 0]
+    row.extend([0] * (GRID_SIZE - len(row))
+
+# Main game loop
+add_random_tile()
+add_random_tile()
+draw_grid()
+running = True
+
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                slide("z")
+            elif event.key == pygame.K_DOWN:
+                slide("z")
+            elif event.key == pygame.K_LEFT:
+                slide("x")
+            elif event.key == pygame.K_RIGHT:
+                slide("x")
+            elif event.key == pygame.K_SPACE:
+                slide("y")
+
+pygame.quit()
+
