@@ -1,0 +1,92 @@
+This is our starter kit of a original 2048 game below    
+
+import random
+
+# 初始化遊戲板
+def initialize_board():
+    board = [[0] * 4 for _ in range(4)]
+    add_new_tile(board)
+    add_new_tile(board)
+    return board
+
+# 在空白位置添加一個新的數字方塊
+def add_new_tile(board):
+    empty_cells = [(i, j) for i in range(4) for j in range(4) if board[i][j] == 0]
+    if empty_cells:
+        i, j = random.choice(empty_cells)
+        board[i][j] = 2 if random.random() < 0.9 else 4
+
+# 顯示遊戲板
+def display_board(board):
+    for row in board:
+        print(" ".join([str(cell) if cell != 0 else "." for cell in row]))
+    print()
+
+# 移動遊戲板上的方塊
+def move(board, direction):
+    # 將方向轉換為行和列的增量
+    if direction == "left":
+        delta = (0, -1)
+    elif direction == "right":
+        delta = (0, 1)
+    elif direction == "up":
+        delta = (-1, 0)
+    elif direction == "down":
+        delta = (1, 0)
+    else:
+        return
+
+    # 檢查是否可以移動，如果可以，則執行移動
+    moved = False
+    for i in range(4):
+        for j in range(4):
+            cell = board[i][j]
+            if cell != 0:
+                x, y = i, j
+                while True:
+                    new_x, new_y = x + delta[0], y + delta[1]
+                    if 0 <= new_x < 4 and 0 <= new_y < 4:
+                        if board[new_x][new_y] == 0:
+                            board[new_x][new_y] = cell
+                            board[x][y] = 0
+                            x, y = new_x, new_y
+                            moved = True
+                        elif board[new_x][new_y] == cell:
+                            board[new_x][new_y] *= 2
+                            board[x][y] = 0
+                            moved = True
+                        else:
+                            break
+                    else:
+                        break
+    return moved
+
+# 檢查遊戲是否結束
+def is_game_over(board):
+    for i in range(4):
+        for j in range(4):
+            if board[i][j] == 2048:
+                return True
+    for direction in ["left", "right", "up", "down"]:
+        if move(board, direction):
+            return False
+    return True
+
+# 主遊戲循環
+def main():
+    board = initialize_board()
+    while True:
+        display_board(board)
+        if is_game_over(board):
+            print("遊戲結束")
+            break
+        direction = input("請輸入方向 (left, right, up, down): ")
+        if direction in ["left", "right", "up", "down"]:
+            moved = move(board, direction)
+            if moved:
+                add_new_tile(board)
+        else:
+            print("請輸入有效的方向！")
+
+if __name__ == "__main__":
+    main()
